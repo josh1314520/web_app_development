@@ -1,6 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, abort
 
-# 注意：此模組僅為路由骨架，尚未包含完整實作邏輯。
 from app.models.recipe import Recipe
 
 # 我們以 recipes 為核心宣告一組 Blueprint
@@ -9,63 +8,111 @@ recipes_bp = Blueprint('recipes', __name__)
 @recipes_bp.route('/')
 @recipes_bp.route('/recipes')
 def index():
-    """
-    HTTP 方法: GET
-    用途: 首頁及食譜清單列表
-    邏輯: 讀取 search / category 的 query string 參數，呼叫 Repo 並渲染 'recipes/index.html'。
-    """
-    pass
+    """首頁及食譜清單列表"""
+    search_query = request.args.get('q', '').strip()
+    category_filter = request.args.get('category', '').strip()
+    
+    recipes_list = Recipe.get_all(
+        search_query=search_query if search_query else None,
+        category_filter=category_filter if category_filter else None
+    )
+    return render_template('recipes/index.html', recipes=recipes_list, q=search_query, category=category_filter)
 
 @recipes_bp.route('/recipes/new', methods=['GET'])
 def new():
-    """
-    HTTP 方法: GET
-    用途: 新增食譜前的表單視圖
-    邏輯: 單純載入並渲染 'recipes/new.html' 表單畫面供給使用者。
-    """
-    pass
+    """新增食譜前的表單視圖"""
+    return render_template('recipes/new.html')
 
 @recipes_bp.route('/recipes', methods=['POST'])
 def create():
-    """
-    HTTP 方法: POST
-    用途: 接收表單傳入的新食譜資料
-    邏輯: 處理並驗證欄位、呼叫 Recipe.create()，然後 redirect() 回到食譜列表。
-    """
-    pass
+    """接收表單傳入的新食譜資料並建立"""
+    title = request.form.get('title', '').strip()
+    ingredients = request.form.get('ingredients', '').strip()
+    instructions = request.form.get('instructions', '').strip()
+    category = request.form.get('category', '').strip()
+    
+    # 基本必填欄位驗證
+    if not title or not ingredients or not instructions or not category:
+        flash('所有欄位皆為必填，請檢查後再送出。', 'danger')
+        # 驗證失敗時，帶著剛剛填的資料重新渲染表單頁
+        return render_template('recipes/new.html', 
+                               title=title, 
+                               ingredients=ingredients, 
+                               instructions=instructions, 
+                               category=category)
+                               
+    recipe_id = Recipe.create(title, ingredients, instructions, category)
+    if recipe_id:
+        flash('新增食譜成功！', 'success')
+        return redirect(url_for('recipes.index'))
+    else:
+        flash('發生內部錯誤，新增食譜失敗。', 'danger')
+        return render_template('recipes/new.html', 
+                               title=title, 
+                               ingredients=ingredients, 
+                               instructions=instructions, 
+                               category=category)
 
 @recipes_bp.route('/recipes/<int:id>', methods=['GET'])
 def detail(id):
-    """
-    HTTP 方法: GET
-    用途: 單一筆食譜詳細檢視視圖
-    邏輯: 用 id 尋找指定的食譜交由 'recipes/detail.html'；若是空則觸發 404
-    """
-    pass
+    """單一筆食譜詳細檢視視圖"""
+    recipe = Recipe.get_by_id(id)
+    if not recipe:
+        abort(404)
+    return render_template('recipes/detail.html', recipe=recipe)
 
 @recipes_bp.route('/recipes/<int:id>/edit', methods=['GET'])
 def edit(id):
-    """
-    HTTP 方法: GET
-    用途: 載入當下食譜供使用者直接編輯的表單視圖
-    邏輯: 用 id 選取當前數值，載回 'recipes/edit.html'，供預填寫欄位用。
-    """
-    pass
+    """載入當下食譜供使用者直接編輯的表單視圖"""
+    recipe = Recipe.get_by_id(id)
+    if not recipe:
+        abort(404)
+    return render_template('recipes/edit.html', recipe=recipe)
 
 @recipes_bp.route('/recipes/<int:id>/update', methods=['POST'])
 def update(id):
-    """
-    HTTP 方法: POST
-    用途: 接收編輯視圖的食譜更新結果
-    邏輯: 驗證及覆寫資料，完成 Recipe.update() 後，重導向至詳細檢視 (/recipes/<id>)。
-    """
-    pass
+    """接收編輯視圖的食譜更新結果"""
+    # 確保原本的食譜存在
+    recipe = Recipe.get_by_id(id)
+    if not recipe:
+        abort(404)
+        
+    title = request.form.get('title', '').strip()
+    ingredients = request.form.get('ingredients', '').strip()
+    instructions = request.form.get('instructions', '').strip()
+    category = request.form.get('category', '').strip()
+    
+    if not title or not ingredients or not instructions or not category:
+        flash('所有欄位皆為必填，請檢查後再送出。', 'danger')
+        # 組裝原本的 ID，讓編輯頁不報錯
+        err_recipe = {
+            'id': id,
+            'title': title,
+            'ingredients': ingredients,
+            'instructions': instructions,
+            'category': category
+        }
+        return render_template('recipes/edit.html', recipe=err_recipe)
+        
+    success = Recipe.update(id, title, ingredients, instructions, category)
+    if success:
+        flash('食譜已成功更新！', 'success')
+        return redirect(url_for('recipes.detail', id=id))
+    else:
+        flash('更新食譜失敗。', 'danger')
+        return redirect(url_for('recipes.edit', id=id))
 
 @recipes_bp.route('/recipes/<int:id>/delete', methods=['POST'])
 def delete(id):
-    """
-    HTTP 方法: POST
-    用途: 從系統完全抹除該食譜
-    邏輯: 透過 Recipe.delete(id) 刪除紀錄，接著將使用者退回首頁。
-    """
-    pass
+    """從系統完全抹除該食譜"""
+    recipe = Recipe.get_by_id(id)
+    if not recipe:
+        abort(404)
+        
+    success = Recipe.delete(id)
+    if success:
+        flash('食譜已順利刪除。', 'success')
+    else:
+        flash('刪除食譜失敗。', 'danger')
+        
+    return redirect(url_for('recipes.index'))

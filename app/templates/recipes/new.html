@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-light">← 返回清單</a>
+            <h1 class="mb-0 fs-2 fw-bold">新增專屬食譜</h1>
+        </div>
+        
+        <div class="glass-card p-5">
+            <form action="{{ url_for('recipes.create') }}" method="POST">
+                <div class="mb-4">
+                    <label for="title" class="form-label">食譜標題</label>
+                    <input type="text" class="form-control form-control-lg" id="title" name="title" value="{{ title or '' }}" placeholder="例如：拿手家常紅燒肉" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="category" class="form-label">料理主題分類</label>
+                    <select class="form-select form-select-lg text-white" id="category" name="category" required>
+                        <option value="" disabled selected class="text-dark">請選擇合適的分類...</option>
+                        <option value="中式" class="text-dark" {% if category == '中式' %}selected{% endif %}>中式</option>
+                        <option value="西式" class="text-dark" {% if category == '西式' %}selected{% endif %}>西式</option>
+                        <option value="日式" class="text-dark" {% if category == '日式' %}selected{% endif %}>日式</option>
+                        <option value="甜點" class="text-dark" {% if category == '甜點' %}selected{% endif %}>甜點</option>
+                        <option value="家常菜" class="text-dark" {% if category == '家常菜' %}selected{% endif %}>家常菜</option>
+                        <option value="其他" class="text-dark" {% if category == '其他' %}selected{% endif %}>其他</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="ingredients" class="form-label">所需食材</label>
+                    <textarea class="form-control" id="ingredients" name="ingredients" rows="5" placeholder="五花肉 500g&#10;醬油 2大匙&#10;青蔥 適量..." required>{{ ingredients or '' }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="instructions" class="form-label">實作步驟筆記</label>
+                    <textarea class="form-control" id="instructions" name="instructions" rows="7" placeholder="1. 先將五花肉切塊汆燙&#10;2. 熱鍋下少許油煸香蔥段..." required>{{ instructions or '' }}</textarea>
+                </div>
+
+                <div class="d-grid mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg">✨ 保存美味印記</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

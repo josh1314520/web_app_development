@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-light">← 返回總覽</a>
+            <div class="ms-auto d-flex gap-2">
+                <a href="{{ url_for('recipes.edit', id=recipe.id) }}" class="btn btn-outline-light">✍️ 內容編輯</a>
+                <form action="{{ url_for('recipes.delete', id=recipe.id) }}" method="POST" onsubmit="return confirm('確定要捨棄這份食譜嗎？無法還原喔！');" class="d-inline">
+                    <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5);">🗑 刪除紀錄</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="glass-card p-5">
+            <div class="mb-3 d-flex align-items-center gap-2">
+                <span class="badge" style="background: rgba(139, 92, 246, 0.4); color: #e9d5ff; border: 1px solid rgba(139, 92, 246, 0.5); font-size: 1rem;">{{ recipe.category }}</span>
+                <span class="recipe-meta ms-2">建立時間：{{ recipe.created_at[:10] }}</span>
+            </div>
+            
+            <h1 class="display-5 fw-bold mb-5">{{ recipe.title }}</h1>
+            
+            <div class="row g-5">
+                <div class="col-md-4">
+                    <h4 class="mb-4" style="color: #60a5fa !important; font-weight: 700;">📝 準備食材</h4>
+                    <div class="instruction-box">
+                        <pre class="m-0 fs-6">{{ recipe.ingredients }}</pre>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <h4 class="mb-4" style="color: #a78bfa !important; font-weight: 700;">👩‍🍳 自我實作步驟</h4>
+                    <div class="instruction-box h-100">
+                        <pre class="m-0 fs-6">{{ recipe.instructions }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

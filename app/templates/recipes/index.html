@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold fs-2">探索美味 <span class="badge bg-primary fs-6 ms-2 align-middle">{{ recipes|length }} 篇</span></h1>
+</div>
+
+<div class="glass-card p-4 mb-5">
+    <form action="{{ url_for('recipes.index') }}" method="GET" class="row g-3">
+        <div class="col-md-6">
+            <input type="text" name="q" class="form-control" placeholder="🔍 搜尋食譜名稱..." value="{{ q or '' }}">
+        </div>
+        <div class="col-md-4">
+            <select name="category" class="form-select text-white">
+                <option value="" class="text-dark">所有分類</option>
+                <option value="中式" class="text-dark" {% if category == '中式' %}selected{% endif %}>中式</option>
+                <option value="西式" class="text-dark" {% if category == '西式' %}selected{% endif %}>西式</option>
+                <option value="日式" class="text-dark" {% if category == '日式' %}selected{% endif %}>日式</option>
+                <option value="甜點" class="text-dark" {% if category == '甜點' %}selected{% endif %}>甜點</option>
+                <option value="家常菜" class="text-dark" {% if category == '家常菜' %}selected{% endif %}>家常菜</option>
+                <option value="其他" class="text-dark" {% if category == '其他' %}selected{% endif %}>其他</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 h-100">篩選查詢</button>
+        </div>
+    </form>
+</div>
+
+{% if recipes %}
+<div class="row g-4">
+    {% for r in recipes %}
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-card h-100 d-flex flex-column p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge" style="background: rgba(139, 92, 246, 0.4); color: #e9d5ff; border: 1px solid rgba(139, 92, 246, 0.5);">{{ r.category }}</span>
+                <small class="recipe-meta">{{ r.created_at[:10] }}</small>
+            </div>
+            <h3 class="h5 fw-bold mb-3 text-truncate">{{ r.title }}</h3>
+            <p class="recipe-meta flex-grow-1 text-truncate" style="-webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; white-space: normal;">
+                {{ r.ingredients }}
+            </p>
+            <a href="{{ url_for('recipes.detail', id=r.id) }}" class="btn btn-outline-light w-100 mt-3 align-self-end">查看完整食譜</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass-card empty-state">
+    <h3 class="mb-3" style="color: #fff;">找不到食譜與筆記 🍳</h3>
+    <p>目前庫存空空如也，或是沒有符合篩選條件的記錄。</p>
+    <a href="{{ url_for('recipes.new') }}" class="btn btn-primary mt-3">立即新增第一份食譜</a>
+</div>
+{% endif %}
+{% endblock %}
